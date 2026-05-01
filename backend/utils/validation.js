@@ -11,4 +11,4 @@ const validateExpense = ({ amount, date }) => {
   return null;
 };
 
-module.exports = { validateExpense };s
+module.exports = { validateExpense };
