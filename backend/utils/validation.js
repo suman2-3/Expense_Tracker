@@ -1,6 +1,8 @@
 // validate expense input
 const validateExpense = ({ amount, date }) => {
-  if (!amount || amount <= 0) {
+  const numericAmount = Number(amount);
+
+  if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
     return "Amount must be greater than 0";
   }
 

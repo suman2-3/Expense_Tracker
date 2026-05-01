@@ -5,8 +5,9 @@ const { validateExpense } = require("../utils/validation");
 // POST /expenses
 const createExpense = (req, res) => {
   const { amount, category, description, date, id } = req.body;
+  const numericAmount = Number(amount);
 
-  const error = validateExpense({ amount, date });
+  const error = validateExpense({ amount: numericAmount, date });
   if (error) {
     return res.status(400).json({ error });
   }
@@ -17,7 +18,7 @@ const createExpense = (req, res) => {
     db.prepare(`
       INSERT INTO expenses (id, amount, category, description, date)
       VALUES (?, ?, ?, ?, ?)
-    `).run(expenseId, amount, category, description, date);
+    `).run(expenseId, numericAmount, category, description, date);
 
     return res.status(201).json({ id: expenseId });
   } catch (err) {
@@ -36,23 +37,27 @@ const createExpense = (req, res) => {
 
 // GET /expenses
 const getExpenses = (req, res) => {
-  const { category, sort } = req.query;
+  try {
+    const { category, sort } = req.query;
 
-  let query = "SELECT * FROM expenses";
-  let params = [];
+    let query = "SELECT * FROM expenses";
+    const params = [];
 
-  if (category) {
-    query += " WHERE category = ?";
-    params.push(category);
+    if (category) {
+      query += " WHERE category = ?";
+      params.push(category);
+    }
+
+    if (sort === "date_desc") {
+      query += " ORDER BY date DESC";
+    }
+
+    const expenses = db.prepare(query).all(...params);
+
+    return res.json(expenses);
+  } catch (err) {
+    return res.status(500).json({ error: "Server error" });
   }
-
-  if (sort === "date_desc") {
-    query += " ORDER BY date DESC";
-  }
-
-  const expenses = db.prepare(query).all(...params);
-
-  res.json(expenses);
 };
 
 module.exports = { createExpense, getExpenses };
